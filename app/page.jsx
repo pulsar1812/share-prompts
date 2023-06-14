@@ -14,7 +14,6 @@ const Home = () => {
         iste doloribus!
       </p>
 
-      {/* Feed */}
       <Feed />
     </section>
   )
