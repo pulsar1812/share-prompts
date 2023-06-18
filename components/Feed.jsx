@@ -22,11 +22,11 @@ const Feed = () => {
   const [searchText, setSearchText] = useState('')
   const [posts, setPosts] = useState([])
 
-  console.log(posts)
-
   const fetchPosts = async () => {
     const response = await fetch('/api/prompt')
     const data = await response.json()
+
+    console.log('Data on client side: ', data)
 
     setPosts(data)
   }
