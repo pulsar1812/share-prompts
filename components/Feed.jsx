@@ -19,14 +19,16 @@ const PromptCardList = ({ data, handleTagClick }) => {
 }
 
 const Feed = () => {
-  const [searchText, setSearchText] = useState('')
   const [posts, setPosts] = useState([])
+  const [searchText, setSearchText] = useState('')
+  const [searchTimeout, setSearchTimeout] = useState(null)
+  const [searchResults, setSearchResults] = useState([])
 
   const fetchPosts = async () => {
     const response = await fetch('/api/prompt')
     const data = await response.json()
 
-    console.log('Data on client side: ', data)
+    // console.log('Data on client side: ', data)
 
     setPosts(data)
   }
@@ -35,12 +37,43 @@ const Feed = () => {
     fetchPosts()
   }, [])
 
-  const handleChange = (e) => {}
+  const filterPrompts = (searchText) => {
+    const regex = new RegExp(searchText, 'i')
 
-  const handleTagClick = () => {}
+    return posts.filter(
+      (post) =>
+        regex.test(post.creator.username) ||
+        regex.test(post.prompt) ||
+        regex.test(post.tag)
+    )
+  }
+
+  const handleChange = (e) => {
+    clearTimeout(searchTimeout)
+    setSearchText(e.target.value)
+
+    // Debounce
+    setSearchTimeout(
+      setTimeout(() => {
+        const result = filterPrompts(e.target.value)
+        setSearchResults(result)
+      }, 500)
+    )
+  }
+
+  const handleTagClick = (tagName) => {
+    setSearchText(tagName)
+
+    const result = filterPrompts(tagName)
+    setSearchResults(result)
+  }
 
   return (
     <section className='feed'>
+      {/* Implement Search
+      - Search by prompt
+      - Search by tag
+      - Search by username */}
       <form className='relative w-full flex-center'>
         <input
           type='text'
@@ -52,7 +85,11 @@ const Feed = () => {
         />
       </form>
 
-      <PromptCardList data={posts} handleTagClick={handleTagClick} />
+      {searchText ? (
+        <PromptCardList data={searchResults} handleTagClick={handleTagClick} />
+      ) : (
+        <PromptCardList data={posts} handleTagClick={handleTagClick} />
+      )}
     </section>
   )
 }
