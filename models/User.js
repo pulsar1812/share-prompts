@@ -1,4 +1,5 @@
 import { model, models, Schema } from 'mongoose'
+import bcrypt from 'bcrypt'
 
 const UserSchema = new Schema(
   {
@@ -15,12 +16,38 @@ const UserSchema = new Schema(
         'Username invalid, it should contain 8-20 alphanumeric letters and be unique!',
       ],
     },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+    },
     image: {
       type: String,
     },
   },
   { timestamps: true }
 )
+
+// Hash password before saving
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next()
+
+  try {
+    const salt = await bcrypt.genSalt(10)
+    this.password = await bcrypt.hash(this.password, salt)
+    next()
+  } catch (err) {
+    throw err
+  }
+})
+
+// Compare password method
+UserSchema.methods.comparePassword = async function (password) {
+  try {
+    return await bcrypt.compare(password, this.password)
+  } catch (err) {
+    throw err
+  }
+}
 
 const User = models.User || model('User', UserSchema)
 export default User
